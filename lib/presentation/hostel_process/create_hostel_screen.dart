@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:imagekit_io/imagekit_io.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:gecw_lakx/application/hostel_process/create_hostel/create_hostel_bloc.dart';
 import 'package:gecw_lakx/presentation/bottom_navigation/bottom_navigation_owner.dart';
 
@@ -13,37 +18,45 @@ class CreateHostelScreen extends StatefulWidget {
 
 class _CreateHostelScreenState extends State<CreateHostelScreen> {
   final _formKey = GlobalKey<FormState>();
-  FirebaseFirestore db = FirebaseFirestore.instance;
+
+  // Firestore instance
+  final FirebaseFirestore db = FirebaseFirestore.instance;
 
   // Text controllers
-  TextEditingController hostelNameController = TextEditingController();
-  TextEditingController ownerNameController = TextEditingController();
-  TextEditingController phoneNumberController = TextEditingController();
-  TextEditingController locationController = TextEditingController();
-  TextEditingController rentController = TextEditingController();
-  TextEditingController roomsController = TextEditingController();
-  TextEditingController personsPerRoomController = TextEditingController();
-  TextEditingController vacancyController = TextEditingController();
-  TextEditingController descriptionController = TextEditingController();
+  final TextEditingController ownerNameController = TextEditingController();
+  final TextEditingController phoneNumberController = TextEditingController();
+  final TextEditingController hostelNameController = TextEditingController();
+  final TextEditingController rentController = TextEditingController();
+  final TextEditingController roomsController = TextEditingController();
+  final TextEditingController vacancyController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController messAvailableController = TextEditingController();
+  final TextEditingController locationController = TextEditingController();
+  final TextEditingController distanceController = TextEditingController();
+
+  // Image picker
+  final ImagePicker _picker = ImagePicker();
+  List<XFile>? _imageFiles = [];
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<CreateHostelBloc, CreateHostelState>(
       listener: (context, state) {
         state.submitFailureOrSuccessOption.fold(() {}, (some) {
-          some.fold((f) {
-            final message = f.maybeWhen(
-              serverError: () => "Some Error Occured, Try Again later",
+          some.fold((failure) {
+            final message = failure.maybeWhen(
+              serverError: () => "Server Error, Please try again later",
               serviceUnavailable: () => "Service Unavailable",
-              orElse: () => "Some Error Occured",
+              orElse: () => "An unexpected error occurred",
             );
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(message)));
-          }, (s) {
-            debugPrint("login success");
-
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message)),
+            );
+          }, (success) {
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (ctx) => BottomNavigationBarOwnerWidget()),
+              MaterialPageRoute(
+                builder: (ctx) => BottomNavigationBarOwnerWidget(),
+              ),
               (route) => false,
             );
           });
@@ -52,219 +65,240 @@ class _CreateHostelScreenState extends State<CreateHostelScreen> {
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            leading: IconButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                  color: Colors.white,
-                )),
-            title: Text('Create Hostel'),
-            // centerTitle: true,
-            backgroundColor: Color(0xFF1F1F1F),
-            elevation: 0,
-            titleTextStyle: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
+            automaticallyImplyLeading:true,
+            foregroundColor: Colors.white,
+            title: const Text('Create Hostel'),
+            backgroundColor: const Color(0xFF1F1F1F),
           ),
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.blue.shade200, Colors.blue.shade50],
-              ),
-            ),
+          body: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Remove the Card and directly create a container for each section
-                      buildTextField(
-                        controller: hostelNameController,
-                        label: 'Hostel Name',
-                      ),
-                      SizedBox(height: 12),
-                      buildTextField(
-                        controller: ownerNameController,
-                        label: 'Owner Name',
-                      ),
-                      SizedBox(height: 12),
-                      buildTextField(
-                        controller: phoneNumberController,
-                        label: 'Phone Number',
-                        inputType: TextInputType.phone,
-                      ),
-                      SizedBox(height: 12),
-                      buildTextField(
-                        controller: rentController,
-                        label: 'Rent and Mess Details',
-                      ),
-                      SizedBox(height: 12),
-                      buildTextField(
-                        controller: roomsController,
-                        label: 'Number of Rooms',
-                        inputType: TextInputType.number,
-                      ),
-                      SizedBox(height: 12),
-                      buildTextField(
-                        controller: personsPerRoomController,
-                        label: 'Persons per Room',
-                        inputType: TextInputType.number,
-                      ),
-                      SizedBox(height: 12),
-                      buildTextField(
-                        controller: vacancyController,
-                        label: 'Vacancy',
-                        inputType: TextInputType.number,
-                      ),
-                      SizedBox(height: 12),
-                      buildTextField(
-                        controller: descriptionController,
-                        label: 'Description',
-                        maxLines: 3,
-                      ),
-                      SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.teal,
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 12, horizontal: 20),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            onPressed: () => context
-                                .read<CreateHostelBloc>()
-                                .add(CreateHostelEvent
-                                    .findLocationButtonPressed()),
-                            child: Text(
-                              'Get Location',
-                              style: TextStyle(color: Colors.white),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildTextField(ownerNameController, 'Owner Name'),
+                    const SizedBox(height: 12),
+                    _buildTextField(phoneNumberController, 'Phone Number',
+                        inputType: TextInputType.phone),
+                    const SizedBox(height: 12),
+                    _buildTextField(hostelNameController, 'Hostel Name'),
+                    const SizedBox(height: 12),
+                    _buildTextField(rentController, 'Rent',inputType: TextInputType.number),
+                    const SizedBox(height: 12),
+                    _buildTextField(roomsController, 'Number of Rooms',
+                        inputType: TextInputType.number),
+                    const SizedBox(height: 12),
+                    _buildTextField(distanceController, 'Distance from College (in meter)',
+                        inputType: TextInputType.number),
+                    const SizedBox(height: 12),
+                    _buildTextField(vacancyController, 'Vacancy',
+                        inputType: TextInputType.number),
+                    const SizedBox(height: 12),
+                    _buildDropdown(
+                      messAvailableController,
+                      'Is Mess Available? (Yes/No)',
+                      ['Yes', 'No'],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTextField(descriptionController, 'Description',
+                        maxLines: 3),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal,
+                            padding: EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 20),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          if (state.locationFetched)
-                            Text(
-                              'Location Fetched!',
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          onPressed: () => context.read<CreateHostelBloc>().add(
+                              CreateHostelEvent.findLocationButtonPressed()),
+                          child: Text(
+                            'Get Location',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        if (state.locationFetched)
+                          Text(
+                            'Location Fetched!',
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
                             ),
-                        ],
-                      ),
-                      SizedBox(height: 20),
-                      state.isSubmitting
-                          ? Center(
-                              child: SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator()),
-                            )
-                          : ElevatedButton(
-                              onPressed: () {
-                                if (_formKey.currentState!.validate()) {
-                                  context.read<CreateHostelBloc>().add(
-                                          CreateHostelEvent.submitButtonPressed(
-                                        hostelName: hostelNameController.text,
-                                        ownerName: ownerNameController.text,
-                                        phoneNumber: phoneNumberController.text,
-                                        rent: rentController.text,
-                                        rooms: roomsController.text,
-                                        location: state.location,
-                                        personsPerRoom:
-                                            personsPerRoomController.text,
-                                        vacancy: vacancyController.text,
-                                        description: descriptionController.text,
-                                      ));
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final pickedImages = await _picker.pickMultiImage();
+                        setState(() {
+                          _imageFiles = pickedImages ?? [];
+                        });
+                      },
+                      child: const Text('Pick Images'),
+                    ),
+                    const SizedBox(height: 12),
+                    _imageFiles!.isEmpty
+                        ? const Text('No images selected',
+                            style: TextStyle(color: Colors.white70))
+                        : GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                            ),
+                            itemCount: _imageFiles!.length,
+                            itemBuilder: (context, index) {
+                              return Image.file(
+                                File(_imageFiles![index].path),
+                                fit: BoxFit.cover,
+                              );
+                            },
+                          ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate()) {
+                          // Image upload logic
+                          List<String> imageUrls = [];
+                          if (_imageFiles != null && _imageFiles!.isNotEmpty) {
+                            for (var file in _imageFiles!) {
+                              try {
+                                final imageKitResponse = await ImageKit.io(
+                                  File(file.path) as List<int>,
+                                  privateKey:
+                                      "private_esKt2hGQTPqCHER2j06jgmmFdWQ=", // Replace with your private key
+                                  fileName: file.name,
+                                  onUploadProgress: (double progressValue) {},
+                                );
+                                if (imageKitResponse.url != null) {
+                                  imageUrls.add(imageKitResponse.url!);
                                 }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.teal,
-                                padding: EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                              } catch (e) {
+                                print("Error uploading image: $e");
+                              }
+                            }
+                          }
+
+                          // Dispatching the event to the Bloc
+                          context.read<CreateHostelBloc>().add(
+                                CreateHostelEvent.submitButtonPressed(
+                                  hostelName: hostelNameController.text,
+                                  ownerName: ownerNameController.text,
+                                  phoneNumber: phoneNumberController.text,
+                                  rent: rentController.text,
+                                  rooms: roomsController.text,
+                                  vacancy: vacancyController.text,
+                                  description: descriptionController.text,
+                                  location: state.location,
+                                  personsPerRoom: '',
                                 ),
-                              ).copyWith(
-                                minimumSize: WidgetStateProperty.all(Size(
-                                    double.infinity,
-                                    50)), // Full width and height
-                              ),
-                              child: Text(
-                                'Submit',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            )
-                    ],
-                  ),
+                              );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 24),
+                      ),
+                      child: const Text(
+                        'Submit',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
+          backgroundColor: const Color(0xFF121212),
         );
       },
     );
   }
 
-  Widget buildTextField({
-    required TextEditingController controller,
-    required String label,
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label, {
     TextInputType inputType = TextInputType.text,
     int maxLines = 1,
   }) {
-    return Container(
-      padding: EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            spreadRadius: 2,
-            blurRadius: 5,
-          ),
-        ],
-      ),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(color: Colors.teal),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.teal),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.white),
-          ),
-          border: OutlineInputBorder(),
-          filled: true,
-          fillColor: Colors.white.withOpacity(0.1),
+    return TextFormField(
+      controller: controller,
+      keyboardType: inputType,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white70),
+        filled: true,
+        fillColor: Colors.grey[900],
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-        keyboardType: inputType,
-        maxLines: maxLines,
-        style: TextStyle(color: Colors.black),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter $label';
-          }
-          return null;
-        },
       ),
+      style: const TextStyle(color: Colors.white),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter $label';
+        }
+        if (label == "Phone Number" && value.length < 10) {
+          return 'Please enter a valid phone number';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildDropdown(
+    TextEditingController controller,
+    String label,
+    List<String> options,
+  ) {
+    return DropdownButtonFormField<String>(
+      value: controller.text.isEmpty ? null : controller.text,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white70),
+        filled: true,
+        fillColor: Colors.grey[900],
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      dropdownColor: Colors.grey[850],
+      items: options
+          .map((option) => DropdownMenuItem(
+                value: option,
+                child: Text(option),
+              ))
+          .toList(),
+      onChanged: (value) {
+        setState(() {
+          controller.text = value ?? '';
+        });
+      },
+      style: const TextStyle(color: Colors.white),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please select $label';
+        }
+        return null;
+      },
     );
   }
 }

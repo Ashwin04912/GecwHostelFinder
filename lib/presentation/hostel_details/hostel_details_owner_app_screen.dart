@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:gecw_lakx/presentation/hostel_details/all_reviews_screen.dart';
 
 class HostelDetailsOwnerAppScreen extends StatelessWidget {
-  const HostelDetailsOwnerAppScreen({super.key});
+  final String hostelId;
+  const HostelDetailsOwnerAppScreen({
+    super.key,
+    required this.hostelId,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        foregroundColor: Colors.white,
+        automaticallyImplyLeading: true,
         title: const Text("Hostel Details"),
-        centerTitle: true,
         backgroundColor: Colors.black,
         actions: [
           IconButton(
@@ -94,11 +100,11 @@ class HostelDetailsOwnerAppScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text("Edit Details"),
+                  child: const Text("Edit Details",style: TextStyle(color: Colors.white),),
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Handle see all reviews
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>ScreenAllReviewsOfHostelScreen(hostelId: hostelId,)));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.tealAccent,
@@ -111,6 +117,25 @@ class HostelDetailsOwnerAppScreen extends StatelessWidget {
                   child: const Text("See All Reviews"),
                 ),
               ],
+            ),
+            const SizedBox(height: 20),
+
+            // Delete Button
+            ElevatedButton(
+              onPressed: () {
+                _showDeleteDialog(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                "Delete Hostel",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
             const SizedBox(height: 20),
 
@@ -143,5 +168,41 @@ class HostelDetailsOwnerAppScreen extends StatelessWidget {
         child: const Icon(Icons.chat, color: Colors.white),
       ),
     );
+  }
+
+  // Show confirmation dialog before deletion
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Delete Hostel"),
+          content: const Text("Are you sure you want to delete this hostel? This action cannot be undone."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                // Handle the delete action
+                Navigator.of(context).pop(); // Close the dialog
+                // Add your delete hostel function here
+                _deleteHostel();
+              },
+              child: const Text("Delete", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Handle deletion of the hostel (this is a placeholder for the actual delete logic)
+  void _deleteHostel() {
+    // Implement your delete functionality here (e.g., call a delete API, remove from Firebase, etc.)
+    print("Hostel with ID $hostelId has been deleted.");
   }
 }

@@ -3,8 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gecw_lakx/presentation/auth/sign_in_screen.dart';
 import 'package:gecw_lakx/presentation/bottom_navigation/bottom_navigation_owner.dart';
 import 'package:gecw_lakx/presentation/bottom_navigation/bottom_navigation_student.dart';
-import 'package:gecw_lakx/presentation/owner_home/owner_home_screen.dart';
-import 'package:gecw_lakx/presentation/student_home/student_home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -51,11 +49,9 @@ class _SplashScreenState extends State<SplashScreen> {
         } else {
           // Handle unexpected role (optional)
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (ctx)=>SignInScreen()));
-          // _showError("Role not found");
         }
       } else {
         Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx)=>SignInScreen()));        // If no user is logged in, navigate to login or another fallback screen
-        // _showError("User not logged in");
       }
     } catch (e) {
       // Handle any exceptions
@@ -68,14 +64,14 @@ class _SplashScreenState extends State<SplashScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Error"),
-          content: Text(message),
+          title: const Text("Error", style: TextStyle(color: Colors.white)),
+          content: Text(message, style: TextStyle(color: Colors.white)),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
-              child: const Text("OK"),
+              child: const Text("OK", style: TextStyle(color: Colors.purple)),
             ),
           ],
         );
@@ -86,18 +82,19 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,  // Dark background color
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Add your app logo or branding
+            // You can add a logo here if needed
             // Image.asset('assets/logo.png', height: 100, width: 100),
             const SizedBox(height: 20),
-            const CircularProgressIndicator(), // Show a loading indicator
+            const CircularProgressIndicator(color: Colors.purple),  // Purple loading indicator for dark theme
             const SizedBox(height: 20),
             const Text(
               "Checking login status...",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),  // White text
             ),
           ],
         ),

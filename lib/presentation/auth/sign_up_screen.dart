@@ -22,6 +22,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black, // Dark background
       body: SingleChildScrollView(
         child: BlocConsumer<SignInFormBloc, SignInFormState>(
           listener: (context, state) {
@@ -30,12 +31,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 final message = f.maybeWhen(
                   noInternetConnection: () => "Check your internet connection.",
                   emailAlreadyInUse: () => "Email already in use",
-                  orElse: () => "Some Error Occured",
+                  orElse: () => "Some Error Occurred",
                 );
                 context.read<SignInFormBloc>().add(SignInFormEvent.resetValues());
                 ScaffoldMessenger.of(context)
                     .showSnackBar(SnackBar(content: Text(message)));
-                    
               }, (s) {
                 debugPrint("login success");
 
@@ -64,29 +64,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white, // Text color for dark theme
                           ),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           "Create your account",
                           style:
-                              TextStyle(fontSize: 15, color: Colors.grey[700]),
+                              TextStyle(fontSize: 15, color: Colors.grey[400]),
                         )
                       ],
                     ),
                     Column(
                       children: <Widget>[
-                        // _buildTextField(
-                        //   controller: _usernameController,
-                        //   hintText: "Username",
-                        //   prefixIcon: Icons.person,
-                        //   validator: (value) {
-                        //     if (value == null || value.isEmpty) {
-                        //       return "Please enter your username";
-                        //     }
-                        //     return null;
-                        //   },
-                        // ),
                         const SizedBox(height: 20),
                         _buildTextField(
                           controller: _emailController,
@@ -176,35 +166,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             }
                           },
                         ),
-                        // validator: (value) {
-                        //   if (value == null || value.isEmpty) {
-                        //     return "Please confirm your password";
-                        //   }
-                        //   if (value != _passwordController.text) {
-                        //     return "Passwords do not match";
-                        //   }
-                        //   return null;
-                        // },
-
                         const SizedBox(height: 20),
                         DropdownButtonFormField<String>(
+                          dropdownColor: Colors.black,
                           value: _selectedOption,
                           decoration: InputDecoration(
+                            
                             border: OutlineInputBorder(
+                              
                               borderRadius: BorderRadius.circular(18),
                             ),
                             filled: true,
-                            fillColor: Colors.purple.withOpacity(0.1),
+                            fillColor: Colors.grey[800],
                             labelText: "Role",
+                            labelStyle: TextStyle(color: Colors.white),
                           ),
                           items: const [
                             DropdownMenuItem(
                               value: 'Hostel_Owner',
-                              child: Text('Hostel Owner'),
+                              child: Text('Hostel Owner', style: TextStyle(color: Colors.white)),
                             ),
                             DropdownMenuItem(
                               value: 'Student',
-                              child: Text('Student'),
+                              child: Text('Student', style: TextStyle(color: Colors.white)),
                             ),
                           ],
                           onChanged: (value) {
@@ -239,9 +223,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     SignInFormEvent
                                         .registerWithEmailAndPasswordPressed(
                                             role: _selectedOption.toString()));
-                                // ScaffoldMessenger.of(context).showSnackBar(
-                                //   const SnackBar(content: Text("Sign up successful!")),
-                                // );
                               }
                             },
                             style: ElevatedButton.styleFrom(
@@ -258,7 +239,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        const Text("Already have an account?"),
+                        const Text("Already have an account?",
+                            style: TextStyle(color: Colors.white)),
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).push(MaterialPageRoute(
@@ -292,15 +274,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
     void Function(dynamic value)? onChanged,
   }) {
     return TextFormField(
+      style: TextStyle(color: Colors.white),
       controller: controller,
       decoration: InputDecoration(
         hintText: hintText,
+        hintStyle: TextStyle(color: Colors.grey[400]), // Dark theme hint style
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
         ),
         filled: true,
-        fillColor: Colors.purple.withOpacity(0.1),
-        prefixIcon: Icon(prefixIcon),
+        fillColor: Colors.grey[800],
+        prefixIcon: Icon(prefixIcon, color: Colors.white),
+        labelText: hintText,
+        labelStyle: TextStyle(color: Colors.white),
       ),
       keyboardType: keyboardType,
       obscureText: obscureText,

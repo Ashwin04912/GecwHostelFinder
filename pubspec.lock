@@ -238,6 +238,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.10.1"
+  dio:
+    dependency: transitive
+    description:
+      name: dio
+      sha256: "7d328c4d898a61efc3cd93655a0955858e29a0aa647f0f9e02d59b3bb275e2e8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.6"
   fake_async:
     dependency: transitive
     description:
@@ -589,6 +597,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.1+1"
+  imagekit_io:
+    dependency: "direct main"
+    description:
+      name: imagekit_io
+      sha256: f69279f6371bb36808c369519711ad66c33a321718ab6039a5d8c9f881f7e3da
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.3"
   injectable:
     dependency: "direct main"
     description:

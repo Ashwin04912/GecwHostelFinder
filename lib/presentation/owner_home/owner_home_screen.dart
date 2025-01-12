@@ -46,7 +46,6 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
@@ -139,25 +138,28 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                   .contains(_searchQuery.toLowerCase()))
               .toList();
 
-          return GestureDetector(
-            onTap: (){
-              Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HostelDetailsOwnerAppScreen()));
-            },
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFF232A34), Color(0xFF1A1A2E)],
-                ),
+          return Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF232A34), Color(0xFF1A1A2E)],
               ),
-              child: ListView.separated(
-                padding: const EdgeInsets.all(8),
-                itemCount: filteredHostels.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final hostel = filteredHostels[index];
-                  return Container(
+            ),
+            child: ListView.separated(
+              padding: const EdgeInsets.all(8),
+              itemCount: filteredHostels.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final hostel = filteredHostels[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => HostelDetailsOwnerAppScreen(
+                              hostelId: hostel.hostelId,
+                            )));
+                  },
+                  child: Container(
                     width: 210,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
@@ -249,9 +251,9 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                         ],
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
           );
         },
