@@ -26,9 +26,11 @@ mixin _$CreateHostelEvent {
             String rent,
             String rooms,
             Position location,
-            String personsPerRoom,
             String vacancy,
-            String description)
+            String description,
+            String distFromCollege,
+            String isMessAvailable,
+            List<XFile> hostelImages)
         submitButtonPressed,
   }) =>
       throw _privateConstructorUsedError;
@@ -42,9 +44,11 @@ mixin _$CreateHostelEvent {
             String rent,
             String rooms,
             Position location,
-            String personsPerRoom,
             String vacancy,
-            String description)?
+            String description,
+            String distFromCollege,
+            String isMessAvailable,
+            List<XFile> hostelImages)?
         submitButtonPressed,
   }) =>
       throw _privateConstructorUsedError;
@@ -58,9 +62,11 @@ mixin _$CreateHostelEvent {
             String rent,
             String rooms,
             Position location,
-            String personsPerRoom,
             String vacancy,
-            String description)?
+            String description,
+            String distFromCollege,
+            String isMessAvailable,
+            List<XFile> hostelImages)?
         submitButtonPressed,
     required TResult orElse(),
   }) =>
@@ -163,9 +169,11 @@ class _$findLocationButtonPressedImpl implements _findLocationButtonPressed {
             String rent,
             String rooms,
             Position location,
-            String personsPerRoom,
             String vacancy,
-            String description)
+            String description,
+            String distFromCollege,
+            String isMessAvailable,
+            List<XFile> hostelImages)
         submitButtonPressed,
   }) {
     return findLocationButtonPressed();
@@ -182,9 +190,11 @@ class _$findLocationButtonPressedImpl implements _findLocationButtonPressed {
             String rent,
             String rooms,
             Position location,
-            String personsPerRoom,
             String vacancy,
-            String description)?
+            String description,
+            String distFromCollege,
+            String isMessAvailable,
+            List<XFile> hostelImages)?
         submitButtonPressed,
   }) {
     return findLocationButtonPressed?.call();
@@ -201,9 +211,11 @@ class _$findLocationButtonPressedImpl implements _findLocationButtonPressed {
             String rent,
             String rooms,
             Position location,
-            String personsPerRoom,
             String vacancy,
-            String description)?
+            String description,
+            String distFromCollege,
+            String isMessAvailable,
+            List<XFile> hostelImages)?
         submitButtonPressed,
     required TResult orElse(),
   }) {
@@ -265,9 +277,11 @@ abstract class _$$submitButtonPressedImplCopyWith<$Res> {
       String rent,
       String rooms,
       Position location,
-      String personsPerRoom,
       String vacancy,
-      String description});
+      String description,
+      String distFromCollege,
+      String isMessAvailable,
+      List<XFile> hostelImages});
 }
 
 /// @nodoc
@@ -289,9 +303,11 @@ class __$$submitButtonPressedImplCopyWithImpl<$Res>
     Object? rent = null,
     Object? rooms = null,
     Object? location = null,
-    Object? personsPerRoom = null,
     Object? vacancy = null,
     Object? description = null,
+    Object? distFromCollege = null,
+    Object? isMessAvailable = null,
+    Object? hostelImages = null,
   }) {
     return _then(_$submitButtonPressedImpl(
       hostelName: null == hostelName
@@ -318,10 +334,6 @@ class __$$submitButtonPressedImplCopyWithImpl<$Res>
           ? _value.location
           : location // ignore: cast_nullable_to_non_nullable
               as Position,
-      personsPerRoom: null == personsPerRoom
-          ? _value.personsPerRoom
-          : personsPerRoom // ignore: cast_nullable_to_non_nullable
-              as String,
       vacancy: null == vacancy
           ? _value.vacancy
           : vacancy // ignore: cast_nullable_to_non_nullable
@@ -330,6 +342,18 @@ class __$$submitButtonPressedImplCopyWithImpl<$Res>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String,
+      distFromCollege: null == distFromCollege
+          ? _value.distFromCollege
+          : distFromCollege // ignore: cast_nullable_to_non_nullable
+              as String,
+      isMessAvailable: null == isMessAvailable
+          ? _value.isMessAvailable
+          : isMessAvailable // ignore: cast_nullable_to_non_nullable
+              as String,
+      hostelImages: null == hostelImages
+          ? _value._hostelImages
+          : hostelImages // ignore: cast_nullable_to_non_nullable
+              as List<XFile>,
     ));
   }
 }
@@ -344,9 +368,12 @@ class _$submitButtonPressedImpl implements _submitButtonPressed {
       required this.rent,
       required this.rooms,
       required this.location,
-      required this.personsPerRoom,
       required this.vacancy,
-      required this.description});
+      required this.description,
+      required this.distFromCollege,
+      required this.isMessAvailable,
+      required final List<XFile> hostelImages})
+      : _hostelImages = hostelImages;
 
   @override
   final String hostelName;
@@ -360,16 +387,26 @@ class _$submitButtonPressedImpl implements _submitButtonPressed {
   final String rooms;
   @override
   final Position location;
-  @override
-  final String personsPerRoom;
+// required String personsPerRoom,
   @override
   final String vacancy;
   @override
   final String description;
+  @override
+  final String distFromCollege;
+  @override
+  final String isMessAvailable;
+  final List<XFile> _hostelImages;
+  @override
+  List<XFile> get hostelImages {
+    if (_hostelImages is EqualUnmodifiableListView) return _hostelImages;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_hostelImages);
+  }
 
   @override
   String toString() {
-    return 'CreateHostelEvent.submitButtonPressed(hostelName: $hostelName, ownerName: $ownerName, phoneNumber: $phoneNumber, rent: $rent, rooms: $rooms, location: $location, personsPerRoom: $personsPerRoom, vacancy: $vacancy, description: $description)';
+    return 'CreateHostelEvent.submitButtonPressed(hostelName: $hostelName, ownerName: $ownerName, phoneNumber: $phoneNumber, rent: $rent, rooms: $rooms, location: $location, vacancy: $vacancy, description: $description, distFromCollege: $distFromCollege, isMessAvailable: $isMessAvailable, hostelImages: $hostelImages)';
   }
 
   @override
@@ -387,16 +424,31 @@ class _$submitButtonPressedImpl implements _submitButtonPressed {
             (identical(other.rooms, rooms) || other.rooms == rooms) &&
             (identical(other.location, location) ||
                 other.location == location) &&
-            (identical(other.personsPerRoom, personsPerRoom) ||
-                other.personsPerRoom == personsPerRoom) &&
             (identical(other.vacancy, vacancy) || other.vacancy == vacancy) &&
             (identical(other.description, description) ||
-                other.description == description));
+                other.description == description) &&
+            (identical(other.distFromCollege, distFromCollege) ||
+                other.distFromCollege == distFromCollege) &&
+            (identical(other.isMessAvailable, isMessAvailable) ||
+                other.isMessAvailable == isMessAvailable) &&
+            const DeepCollectionEquality()
+                .equals(other._hostelImages, _hostelImages));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, hostelName, ownerName,
-      phoneNumber, rent, rooms, location, personsPerRoom, vacancy, description);
+  int get hashCode => Object.hash(
+      runtimeType,
+      hostelName,
+      ownerName,
+      phoneNumber,
+      rent,
+      rooms,
+      location,
+      vacancy,
+      description,
+      distFromCollege,
+      isMessAvailable,
+      const DeepCollectionEquality().hash(_hostelImages));
 
   /// Create a copy of CreateHostelEvent
   /// with the given fields replaced by the non-null parameter values.
@@ -418,13 +470,25 @@ class _$submitButtonPressedImpl implements _submitButtonPressed {
             String rent,
             String rooms,
             Position location,
-            String personsPerRoom,
             String vacancy,
-            String description)
+            String description,
+            String distFromCollege,
+            String isMessAvailable,
+            List<XFile> hostelImages)
         submitButtonPressed,
   }) {
-    return submitButtonPressed(hostelName, ownerName, phoneNumber, rent, rooms,
-        location, personsPerRoom, vacancy, description);
+    return submitButtonPressed(
+        hostelName,
+        ownerName,
+        phoneNumber,
+        rent,
+        rooms,
+        location,
+        vacancy,
+        description,
+        distFromCollege,
+        isMessAvailable,
+        hostelImages);
   }
 
   @override
@@ -438,13 +502,25 @@ class _$submitButtonPressedImpl implements _submitButtonPressed {
             String rent,
             String rooms,
             Position location,
-            String personsPerRoom,
             String vacancy,
-            String description)?
+            String description,
+            String distFromCollege,
+            String isMessAvailable,
+            List<XFile> hostelImages)?
         submitButtonPressed,
   }) {
-    return submitButtonPressed?.call(hostelName, ownerName, phoneNumber, rent,
-        rooms, location, personsPerRoom, vacancy, description);
+    return submitButtonPressed?.call(
+        hostelName,
+        ownerName,
+        phoneNumber,
+        rent,
+        rooms,
+        location,
+        vacancy,
+        description,
+        distFromCollege,
+        isMessAvailable,
+        hostelImages);
   }
 
   @override
@@ -458,15 +534,27 @@ class _$submitButtonPressedImpl implements _submitButtonPressed {
             String rent,
             String rooms,
             Position location,
-            String personsPerRoom,
             String vacancy,
-            String description)?
+            String description,
+            String distFromCollege,
+            String isMessAvailable,
+            List<XFile> hostelImages)?
         submitButtonPressed,
     required TResult orElse(),
   }) {
     if (submitButtonPressed != null) {
-      return submitButtonPressed(hostelName, ownerName, phoneNumber, rent,
-          rooms, location, personsPerRoom, vacancy, description);
+      return submitButtonPressed(
+          hostelName,
+          ownerName,
+          phoneNumber,
+          rent,
+          rooms,
+          location,
+          vacancy,
+          description,
+          distFromCollege,
+          isMessAvailable,
+          hostelImages);
     }
     return orElse();
   }
@@ -514,19 +602,23 @@ abstract class _submitButtonPressed implements CreateHostelEvent {
       required final String rent,
       required final String rooms,
       required final Position location,
-      required final String personsPerRoom,
       required final String vacancy,
-      required final String description}) = _$submitButtonPressedImpl;
+      required final String description,
+      required final String distFromCollege,
+      required final String isMessAvailable,
+      required final List<XFile> hostelImages}) = _$submitButtonPressedImpl;
 
   String get hostelName;
   String get ownerName;
   String get phoneNumber;
   String get rent;
   String get rooms;
-  Position get location;
-  String get personsPerRoom;
+  Position get location; // required String personsPerRoom,
   String get vacancy;
   String get description;
+  String get distFromCollege;
+  String get isMessAvailable;
+  List<XFile> get hostelImages;
 
   /// Create a copy of CreateHostelEvent
   /// with the given fields replaced by the non-null parameter values.

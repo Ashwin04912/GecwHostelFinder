@@ -2,9 +2,8 @@ part of 'create_hostel_bloc.dart';
 
 @freezed
 class CreateHostelEvent with _$CreateHostelEvent {
-
-const factory CreateHostelEvent.findLocationButtonPressed() = _findLocationButtonPressed;
-
+  const factory CreateHostelEvent.findLocationButtonPressed() =
+      _findLocationButtonPressed;
 
   const factory CreateHostelEvent.submitButtonPressed({
     required String hostelName,
@@ -13,13 +12,13 @@ const factory CreateHostelEvent.findLocationButtonPressed() = _findLocationButto
     required String rent,
     required String rooms,
     required Position location,
-    required String personsPerRoom,
+    // required String personsPerRoom,
     required String vacancy,
     required String description,
+    required String distFromCollege,
+    required String isMessAvailable,
+    required List<XFile> hostelImages,
   }) = _submitButtonPressed;
-
-  
-  
 }
 
 

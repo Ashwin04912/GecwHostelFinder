@@ -65,7 +65,7 @@ class _CreateHostelScreenState extends State<CreateHostelScreen> {
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            automaticallyImplyLeading:true,
+            automaticallyImplyLeading: true,
             foregroundColor: Colors.white,
             title: const Text('Create Hostel'),
             backgroundColor: const Color(0xFF1F1F1F),
@@ -85,12 +85,14 @@ class _CreateHostelScreenState extends State<CreateHostelScreen> {
                     const SizedBox(height: 12),
                     _buildTextField(hostelNameController, 'Hostel Name'),
                     const SizedBox(height: 12),
-                    _buildTextField(rentController, 'Rent',inputType: TextInputType.number),
+                    _buildTextField(rentController, 'Rent',
+                        inputType: TextInputType.number),
                     const SizedBox(height: 12),
                     _buildTextField(roomsController, 'Number of Rooms',
                         inputType: TextInputType.number),
                     const SizedBox(height: 12),
-                    _buildTextField(distanceController, 'Distance from College (in meter)',
+                    _buildTextField(
+                        distanceController, 'Distance from College (in meter)',
                         inputType: TextInputType.number),
                     const SizedBox(height: 12),
                     _buildTextField(vacancyController, 'Vacancy',
@@ -167,60 +169,56 @@ class _CreateHostelScreenState extends State<CreateHostelScreen> {
                             },
                           ),
                     const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          // Image upload logic
-                          List<String> imageUrls = [];
-                          if (_imageFiles != null && _imageFiles!.isNotEmpty) {
-                            for (var file in _imageFiles!) {
-                              try {
-                                final imageKitResponse = await ImageKit.io(
-                                  File(file.path) as List<int>,
-                                  privateKey:
-                                      "private_esKt2hGQTPqCHER2j06jgmmFdWQ=", // Replace with your private key
-                                  fileName: file.name,
-                                  onUploadProgress: (double progressValue) {},
-                                );
-                                if (imageKitResponse.url != null) {
-                                  imageUrls.add(imageKitResponse.url!);
+                    state.isSubmitting
+                        ? Center(
+                            child: CircularProgressIndicator(),
+                          )
+                        : ElevatedButton(
+                            onPressed: () async {
+                              // print(messAvailableController.text);
+                              // print(distanceController.text);
+                              if (_formKey.currentState!.validate()) {
+                                if (_imageFiles == null) {
+                                  print('add_images');
+                                } else {
+                                  context.read<CreateHostelBloc>().add(
+                                        CreateHostelEvent.submitButtonPressed(
+                                          hostelName: hostelNameController.text,
+                                          ownerName: ownerNameController.text,
+                                          phoneNumber:
+                                              phoneNumberController.text,
+                                          rent: rentController.text,
+                                          rooms: roomsController.text,
+                                          vacancy: vacancyController.text,
+                                          description:
+                                              descriptionController.text,
+                                          location: state.location,
+                                          distFromCollege:
+                                              distanceController.text,
+                                          isMessAvailable:
+                                              messAvailableController.text,
+                                          hostelImages: _imageFiles!,
+                                        ),
+                                      );
                                 }
-                              } catch (e) {
-                                print("Error uploading image: $e");
-                              }
-                            }
-                          }
 
-                          // Dispatching the event to the Bloc
-                          context.read<CreateHostelBloc>().add(
-                                CreateHostelEvent.submitButtonPressed(
-                                  hostelName: hostelNameController.text,
-                                  ownerName: ownerNameController.text,
-                                  phoneNumber: phoneNumberController.text,
-                                  rent: rentController.text,
-                                  rooms: roomsController.text,
-                                  vacancy: vacancyController.text,
-                                  description: descriptionController.text,
-                                  location: state.location,
-                                  personsPerRoom: '',
-                                ),
-                              );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 14, horizontal: 24),
-                      ),
-                      child: const Text(
-                        'Submit',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                                // Dispatching the event to the Bloc
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 14, horizontal: 24),
+                            ),
+                            child: const Text(
+                              'Submit',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                   ],
                 ),
               ),

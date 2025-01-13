@@ -9,6 +9,7 @@ import 'package:gecw_lakx/firebase_options.dart';
 import 'package:gecw_lakx/injection.dart';
 import 'package:gecw_lakx/presentation/auth/sign_in_screen.dart';
 import 'package:gecw_lakx/presentation/splash_screen/splash_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'presentation/auth/sign_up_screen.dart';
 
@@ -17,6 +18,11 @@ void main() async {
   configureDependencies('prod');
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
+  );
+  //supabase 
+  await Supabase.initialize(
+    url: 'https://mksxoiizgunbatwgjgru.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rc3hvaWl6Z3VuYmF0d2dqZ3J1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY3NDUwODMsImV4cCI6MjA1MjMyMTA4M30.flRm8k5nPQOoi1F63dZaL-BLvZXMLoP14cEpPur0mzA',
   );
   runApp(const MyApp());
 }
