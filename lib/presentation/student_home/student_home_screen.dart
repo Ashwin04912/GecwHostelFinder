@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -32,7 +33,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
 
   void _openFilterModal() {
     double _minFees = 0;
-    double _maxFees = 5000;
+    double _maxFees = 10000; // Keep max fees at ₹10,000
     double _selectedRating = 0;
 
     showModalBottomSheet(
@@ -68,7 +69,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                   RangeSlider(
                     values: RangeValues(_minFees, _maxFees),
                     min: 0,
-                    max: 10000,
+                    max: _maxFees, // Maximum fees is ₹10,000
                     divisions: 20,
                     labels: RangeLabels(
                         '₹${_minFees.round()}', '₹${_maxFees.round()}'),
@@ -258,8 +259,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
               itemBuilder: (context, index) {
                 final hostel = filteredHostels[index];
                 return GestureDetector(
-                  onTap: () async{
-                   final SharedPreferences prefs = await SharedPreferences.getInstance();
+                  onTap: () async {
+                    final SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
                     String? userId = prefs.getString("owner_userid");
                     Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) => HostelDetailsStudentAppScreen(
@@ -268,8 +270,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                               mess: "Available",
                               phNumber: hostel.phoneNumber,
                               rent: hostel.rent,
-                               hostelId: hostel.hostelId,
-                               userId: userId.toString(), hostelImage: hostel.hostelImages,
+                              hostelId: hostel.hostelId,
+                              userId: userId.toString(),
+                              hostelImage: hostel.hostelImages,
                             )));
                   },
                   child: Card(
@@ -282,12 +285,30 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         ClipRRect(
+                          
                           borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(12)),
-                          child: Image.network(
-                            hostel.hostelImages[0],
+                            top: Radius.circular(12),
+                          ),
+                          child: CachedNetworkImage(
                             height: 150,
+                            cacheManager: CachedNetworkImageProvider.defaultCacheManager,
+                            key: UniqueKey(),
+                            imageUrl: hostel.hostelImages[0],
+                            width: MediaQuery.of(context).size.width - 40,
                             fit: BoxFit.cover,
+                            placeholder: (context, url) => Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.deepPurpleAccent,
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: Colors.grey[850],
+                              child: const Icon(
+                                Icons.broken_image,
+                                color: Colors.white70,
+                                size: 50,
+                              ),
+                            ),
                           ),
                         ),
                         Padding(

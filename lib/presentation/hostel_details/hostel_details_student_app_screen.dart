@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:gecw_lakx/application/hostel_process/common_hostel_process/common_hostel_process_bloc.dart';
 import 'package:gecw_lakx/presentation/hostel_details/widgets/build_detail_widget.dart';
@@ -24,7 +26,8 @@ class HostelDetailsStudentAppScreen extends StatefulWidget {
     required this.rent,
     required this.mess,
     required this.hostelId,
-    required this.userId, required this.hostelImage,
+    required this.userId,
+    required this.hostelImage,
   });
 
   @override
@@ -34,21 +37,6 @@ class HostelDetailsStudentAppScreen extends StatefulWidget {
 
 class HostelDetailsStudentAppScreenState
     extends State<HostelDetailsStudentAppScreen> {
-  @override
-  void initState() {
-    // TODO: implement initState
-    context.read<CommonHostelProcessBloc>().add(
-        CommonHostelProcessEvent.getAllratingsAndReview(
-            hostelId: widget.hostelId));
-    super.initState();
-  }
-
-  // final List<String> photos = [
-  //   "https://img.freepik.com/free-photo/front-view-young-friends-hostel_23-2150598844.jpg",
-  //   "https://img.freepik.com/free-photo/front-view-young-friends-hostel_23-2150598844.jpg",
-  //   "https://img.freepik.com/free-photo/front-view-young-friends-hostel_23-2150598844.jpg",
-  // ];
-
   double _userRating = 4.0; // Default rating
   List<Map<String, String>> reviews = [];
 
@@ -68,13 +56,20 @@ class HostelDetailsStudentAppScreenState
     },
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    context.read<CommonHostelProcessBloc>().add(
+        CommonHostelProcessEvent.getAllratingsAndReview(
+            hostelId: widget.hostelId));
+  }
+
   void _openAddReviewModal() {
     final TextEditingController reviewController = TextEditingController();
 
     showModalBottomSheet(
       context: context,
-      isScrollControlled:
-          true, // Allow modal to expand when the keyboard is visible
+      isScrollControlled: true,
       backgroundColor: Colors.grey[900],
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -82,9 +77,7 @@ class HostelDetailsStudentAppScreenState
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context)
-                .viewInsets
-                .bottom, // Adjust padding for the keyboard
+            bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
           child: SingleChildScrollView(
             child: Container(
@@ -150,7 +143,7 @@ class HostelDetailsStudentAppScreenState
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () async {
+                      onPressed: () {
                         if (reviewController.text.trim().isNotEmpty) {
                           setState(() {
                             reviews.add({
@@ -163,7 +156,7 @@ class HostelDetailsStudentAppScreenState
                                       .submitReviewButtonPressed(
                                 stars: _userRating.toString(),
                                 userId: widget.userId,
-                                userName: "Hahaha",
+                                userName: "Anonymous",
                                 comment: reviewController.text.trim(),
                                 hostelId: widget.hostelId,
                               ));
@@ -197,13 +190,13 @@ class HostelDetailsStudentAppScreenState
         backgroundColor: Colors.grey[900],
         title: Text(
           widget.hostelName,
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.chat),
             onPressed: () {
-              // Add your chat button functionality here
+              // Chat button functionality
             },
             color: Colors.white,
           ),
@@ -223,202 +216,205 @@ class HostelDetailsStudentAppScreenState
           return Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.only(bottom: 55),
+                padding: const EdgeInsets.only(bottom: 75),
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Horizontal Photo Scroller
-                      SizedBox(
-                        height: 250,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: widget.hostelImage.length,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 10),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.network(
-                                  widget.hostelImage[index],
-                                  width: MediaQuery.of(context).size.width - 40,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+                      _buildPhotoScroller(),
                       const SizedBox(height: 20),
-
                       // Hostel Details Section
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            buildDetail("Owner Name", widget.ownerName),
-                            buildDetail("Phone Number", widget.phNumber),
-                            buildDetail("Rent", "₹${widget.rent}/month"),
-                            buildDetail("Mess", widget.mess),
-
-                            const SizedBox(height: 20),
-
-                            // Room and Bed Selection
-                            const Text(
-                              "Select Room and Bed",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
+                      _buildDetailsSection(),
+                      const SizedBox(height: 25),
+                      reviews.isEmpty
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text("No Reviews"),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            ...rooms.map((room) {
-                              return Card(
-                                color: Colors.grey[850],
-                                margin: const EdgeInsets.symmetric(vertical: 8),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Room ${room['roomNumber']}",
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Row(
-                                        children: List.generate(
-                                            room['beds'].length, (index) {
-                                          bool isAvailable =
-                                              room['beds'][index];
-                                          return GestureDetector(
-                                            onTap: isAvailable
-                                                ? () {
-                                                    // Handle bed selection
-                                                    ScaffoldMessenger.of(
-                                                            context)
-                                                        .showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          "You selected bed ${index + 1} in Room ${room['roomNumber']}",
-                                                        ),
-                                                      ),
-                                                    );
-                                                  }
-                                                : null,
-                                            child: Container(
-                                              margin:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4),
-                                              width: 40,
-                                              height: 40,
-                                              decoration: BoxDecoration(
-                                                color: isAvailable
-                                                    ? Colors.green
-                                                    : Colors.red,
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: Center(
-                                                child: Text(
-                                                  "${index + 1}",
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        }),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }),
-
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey[850],
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                    horizontal: 16,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                icon: const Icon(Icons.add_comment,
-                                    color: Colors.white),
-                                label: const Text(
-                                  "Add a Review",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16),
-                                ),
-                                onPressed: _openAddReviewModal,
-                              ),
-                            ),
-                            SizedBox(
-                              height: 25,
-                            ),
-                            reviews.isEmpty
-                                ? Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text("No Reviews"),
-                                    ),
-                                  )
-                                : ReviewList(reviews: reviews),
-                          ],
-                        ),
-                      ),
+                            )
+                          : ReviewList(reviews: reviews),
                     ],
                   ),
                 ),
               ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 8,
-                    ),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurpleAccent,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () {
-                        // Booking logic here
-                      },
-                      child: const Text(
-                        "Book Now",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                    )),
-              ),
+              _buildBookNowButton(),
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildPhotoScroller() {
+    return SizedBox(
+      height: 250,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: widget.hostelImage.length,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 10),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: CachedNetworkImage(
+                cacheManager: DefaultCacheManager(),
+                key: UniqueKey(),
+                imageUrl: widget.hostelImage[index],
+                width: MediaQuery.of(context).size.width - 40,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.deepPurpleAccent,
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey[850],
+                  child: const Icon(
+                    Icons.broken_image,
+                    color: Colors.white70,
+                    size: 50,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDetailsSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          buildDetail("Owner Name", widget.ownerName),
+          buildDetail("Phone Number", widget.phNumber),
+          buildDetail("Rent", "₹${widget.rent}/month"),
+          buildDetail("Mess", widget.mess),
+          const SizedBox(height: 20),
+          const Text(
+            "Select Room and Bed",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ...rooms.map((room) => _buildRoomCard(room)),
+          const SizedBox(height: 15,),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueGrey,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            icon: const Icon(Icons.add_comment, color: Colors.white),
+            label: const Text("Add a Review",
+                style: TextStyle(color: Colors.white)),
+            onPressed: _openAddReviewModal,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoomCard(Map<String, dynamic> room) {
+    return Card(
+      color: Colors.grey[850],
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Room ${room['roomNumber']}",
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: List.generate(room['beds'].length, (index) {
+                bool isAvailable = room['beds'][index];
+                return GestureDetector(
+                  onTap: isAvailable
+                      ? () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "You selected bed ${index + 1} in Room ${room['roomNumber']}",
+                              ),
+                            ),
+                          );
+                        }
+                      : null,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: isAvailable ? Colors.green : Colors.red,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "${index + 1}",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBookNowButton() {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.deepPurpleAccent,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          onPressed: () {
+            // Implement booking functionality here
+          },
+          child: const Text(
+            "Book Now",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       ),
     );
   }

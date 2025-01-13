@@ -20,7 +20,7 @@ class ReviewList extends StatelessWidget {
 
   Widget buildReview(String rating, String comment) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Card(
         color: Colors.grey[850],
         shape: RoundedRectangleBorder(

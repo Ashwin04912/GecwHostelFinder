@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:gecw_lakx/presentation/hostel_details/all_reviews_screen.dart';
 
@@ -51,11 +52,29 @@ class HostelDetailsOwnerAppScreen extends StatelessWidget {
                     width: 300,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      image: DecorationImage(
-                        image: NetworkImage(hostelImages[index]),
-                        fit: BoxFit.cover,
-                      ),
+                      
                     ),
+                    child: CachedNetworkImage(
+                            height: 150,
+                            cacheManager: CachedNetworkImageProvider.defaultCacheManager,
+                            key: UniqueKey(),
+                            imageUrl: hostelImages[index],
+                            width: MediaQuery.of(context).size.width - 40,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.deepPurpleAccent,
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: Colors.grey[850],
+                              child: const Icon(
+                                Icons.broken_image,
+                                color: Colors.white70,
+                                size: 50,
+                              ),
+                            ),
+                          ),
                   );
                 },
               ),
