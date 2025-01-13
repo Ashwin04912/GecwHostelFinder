@@ -3,9 +3,11 @@ import 'package:gecw_lakx/presentation/hostel_details/all_reviews_screen.dart';
 
 class HostelDetailsOwnerAppScreen extends StatelessWidget {
   final String hostelId;
+  final List<String> hostelImages;
   const HostelDetailsOwnerAppScreen({
     super.key,
     required this.hostelId,
+    required this.hostelImages
   });
 
   @override
@@ -42,7 +44,7 @@ class HostelDetailsOwnerAppScreen extends StatelessWidget {
               height: 200,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: 5, // Replace with actual image count
+                itemCount: hostelImages.length, // Replace with actual image count
                 itemBuilder: (context, index) {
                   return Container(
                     margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -50,7 +52,7 @@ class HostelDetailsOwnerAppScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       image: DecorationImage(
-                        image: NetworkImage('https://img.freepik.com/free-photo/young-friends-hostel_52683-121730.jpg'), // Replace with actual image paths
+                        image: NetworkImage(hostelImages[index]),
                         fit: BoxFit.cover,
                       ),
                     ),

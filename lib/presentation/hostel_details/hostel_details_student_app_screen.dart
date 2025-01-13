@@ -14,6 +14,7 @@ class HostelDetailsStudentAppScreen extends StatefulWidget {
   final String mess;
   final String hostelId;
   final String userId;
+  final List<String> hostelImage;
 
   const HostelDetailsStudentAppScreen({
     super.key,
@@ -23,7 +24,7 @@ class HostelDetailsStudentAppScreen extends StatefulWidget {
     required this.rent,
     required this.mess,
     required this.hostelId,
-    required this.userId,
+    required this.userId, required this.hostelImage,
   });
 
   @override
@@ -42,11 +43,11 @@ class HostelDetailsStudentAppScreenState
     super.initState();
   }
 
-  final List<String> photos = [
-    "https://img.freepik.com/free-photo/front-view-young-friends-hostel_23-2150598844.jpg",
-    "https://img.freepik.com/free-photo/front-view-young-friends-hostel_23-2150598844.jpg",
-    "https://img.freepik.com/free-photo/front-view-young-friends-hostel_23-2150598844.jpg",
-  ];
+  // final List<String> photos = [
+  //   "https://img.freepik.com/free-photo/front-view-young-friends-hostel_23-2150598844.jpg",
+  //   "https://img.freepik.com/free-photo/front-view-young-friends-hostel_23-2150598844.jpg",
+  //   "https://img.freepik.com/free-photo/front-view-young-friends-hostel_23-2150598844.jpg",
+  // ];
 
   double _userRating = 4.0; // Default rating
   List<Map<String, String>> reviews = [];
@@ -232,7 +233,7 @@ class HostelDetailsStudentAppScreenState
                         height: 250,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
-                          itemCount: photos.length,
+                          itemCount: widget.hostelImage.length,
                           itemBuilder: (context, index) {
                             return Container(
                               margin:
@@ -240,7 +241,7 @@ class HostelDetailsStudentAppScreenState
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
                                 child: Image.network(
-                                  photos[index],
+                                  widget.hostelImage[index],
                                   width: MediaQuery.of(context).size.width - 40,
                                   fit: BoxFit.cover,
                                 ),

@@ -47,217 +47,252 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: _isSearching
-            ? TextField(
-                controller: _searchController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  hintText: 'Search your hostel',
-                  hintStyle: TextStyle(color: Colors.white70),
-                  border: InputBorder.none,
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    'My Hostels',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    'Manage your properties',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
-        actions: [
-          IconButton(
-            icon: _isSearching
-                ? const Icon(Icons.clear, color: Colors.white)
-                : const Icon(Icons.search, color: Colors.white),
-            onPressed: () {
+  appBar: AppBar(
+    backgroundColor: const Color(0xFF1A1A2E),
+    elevation: 0,
+    automaticallyImplyLeading: false,
+    title: _isSearching
+        ? TextField(
+            controller: _searchController,
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              hintText: 'Search your hostel',
+              hintStyle: TextStyle(color: Colors.white70),
+              border: InputBorder.none,
+            ),
+            onChanged: (value) {
               setState(() {
-                if (_isSearching) {
-                  _searchController.clear();
-                  _searchQuery = "";
-                }
-                _isSearching = !_isSearching;
+                _searchQuery = value;
               });
             },
+          )
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                'My Hostels',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 2),
+              Text(
+                'Manage your properties with ease',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.white70,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: BlocConsumer<OwnerHomeBloc, OwnerHomeState>(
-        listener: (context, state) {
-          state.hostelGetFailureOrSuccess.fold(() {}, (either) {
-            either.fold((failure) {
-              final message = failure.maybeWhen(
-                serviceUnavailable: () => "Try again later",
-                orElse: () => "An error occurred",
-              );
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(SnackBar(content: Text(message)));
-            }, (hostels) {
-              setState(() {
-                hostelResponseModel = hostels;
-              });
-            });
+    actions: [
+      IconButton(
+        icon: Icon(
+          _isSearching ? Icons.clear : Icons.search,
+          color: Colors.white,
+        ),
+        onPressed: () {
+          setState(() {
+            if (_isSearching) {
+              _searchController.clear();
+              _searchQuery = "";
+            }
+            _isSearching = !_isSearching;
           });
         },
-        builder: (context, state) {
-          if (hostelResponseModel == null || hostelResponseModel!.isEmpty) {
-            return const Center(
-              child: Text(
-                "No hostels found.",
-                style: TextStyle(fontSize: 16, color: Colors.white70),
-              ),
-            );
-          }
+      ),
+    ],
+  ),
+  body: BlocConsumer<OwnerHomeBloc, OwnerHomeState>(
+    listener: (context, state) {
+      state.hostelGetFailureOrSuccess.fold(() {}, (either) {
+        either.fold((failure) {
+          final message = failure.maybeWhen(
+            serviceUnavailable: () => "Service is currently unavailable. Try again later.",
+            orElse: () => "An unexpected error occurred.",
+          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(message)));
+        }, (hostels) {
+          setState(() {
+            hostelResponseModel = hostels;
+          });
+        });
+      });
+    },
+    builder: (context, state) {
+      if (hostelResponseModel == null) {
+        return const Center(
+          child: CircularProgressIndicator(color: Colors.deepPurple),
+        );
+      }
 
-          final filteredHostels = hostelResponseModel!
-              .where((hostel) => hostel.hostelName
-                  .toLowerCase()
-                  .contains(_searchQuery.toLowerCase()))
-              .toList();
+      final filteredHostels = hostelResponseModel!
+          .where((hostel) => hostel.hostelName
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()))
+          .toList();
 
-          return Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF232A34), Color(0xFF1A1A2E)],
-              ),
-            ),
-            child: ListView.separated(
-              padding: const EdgeInsets.all(8),
-              itemCount: filteredHostels.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final hostel = filteredHostels[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => HostelDetailsOwnerAppScreen(
-                              hostelId: hostel.hostelId,
-                            )));
-                  },
-                  child: Container(
-                    width: 210,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: const Color(0xFF2B2B40),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ],
+      if (filteredHostels.isEmpty) {
+        return const Center(
+          child: Text(
+            "No hostels found matching your search.",
+            style: TextStyle(fontSize: 16, color: Colors.white70),
+          ),
+        );
+      }
+
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF232A34), Color(0xFF1A1A2E)],
+          ),
+        ),
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+          itemCount: filteredHostels.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            final hostel = filteredHostels[index];
+            return GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => HostelDetailsOwnerAppScreen(
+                          hostelId: hostel.hostelId,
+                          hostelImages: hostel.hostelImages,
+                        )));
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFF2B2B40),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 8,
+                      spreadRadius: 2,
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12)),
+                      child: Image.network(
+                        hostel.hostelImages[0],
+                        height: 160,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(12),
                       child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Image.network(
-                            "https://content.jdmagicbox.com/comp/ghaziabad/w4/011pxx11.xx11.191217190807.e5w4/catalogue/rpn-boy-s-hostel-dasna-ghaziabad-hostels-adyayiouqi.jpg",
-                            height: 120,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        hostel.hostelName,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  hostel.hostelName,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  const Icon(Icons.star,
+                                      color: Colors.amber, size: 18),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    '20',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.white70,
                                     ),
-                                    const Icon(Icons.star,
-                                        color: Colors.amber, size: 18),
-                                    const SizedBox(width: 5),
-                                    const Text(
-                                      '(12)',
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            hostel.description,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              RichText(
+                                text: TextSpan(
+                                  text: '₹${hostel.rent}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.deepPurpleAccent,
+                                  ),
+                                  children: const [
+                                    TextSpan(
+                                      text: ' / month',
                                       style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w400,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w300,
                                         color: Colors.white70,
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  hostel.description,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) =>
+                                          HostelDetailsOwnerAppScreen(
+                                            hostelId: hostel.hostelId,
+                                            hostelImages: hostel.hostelImages,
+                                          )));
+                                },
+                                child: const Text(
+                                  "View Details",
+                                  style: TextStyle(
                                     fontSize: 14,
-                                    fontWeight: FontWeight.normal,
-                                    color: Colors.white70,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.deepPurpleAccent,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                RichText(
-                                  text: TextSpan(
-                                    text: '${hostel.rent}/-',
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                    children: const [
-                                      TextSpan(
-                                        text: '  /month',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w300,
-                                          color: Colors.white54,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
-          );
-        },
-      ),
-    );
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    },
+  ),
+);
+
   }
 }

@@ -1,6 +1,4 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
@@ -62,124 +60,120 @@ class FirebaseHostelProcessFacade extends IHostelProcessFacade {
     }
   }
 
- @override
-Future<Either<FormFailures, Unit>> saveDataToDb({
-  required String hostelName,
-  required String ownerName,
-  required String phoneNumber,
-  required String rent,
-  required String rooms,
-  required Position location,
-  required String vacancy,
-  required String distFromCollege,
-  required String isMessAvailable,
-  required List<XFile> hostelImages,
-  required String description,
-}) async {
-  try {
-    print("In API call: $distFromCollege and $isMessAvailable");
+  @override
+  Future<Either<FormFailures, Unit>> saveDataToDb({
+    required String hostelName,
+    required String ownerName,
+    required String phoneNumber,
+    required String rent,
+    required String rooms,
+    required Position location,
+    required String vacancy,
+    required String distFromCollege,
+    required String isMessAvailable,
+    required List<XFile> hostelImages,
+    required String description,
+  }) async {
+    try {
+      print("In API call: $distFromCollege and $isMessAvailable");
 
-    // Retrieve user ID from shared preferences
-    final prefs = await SharedPreferences.getInstance();
-    final String? userId = prefs.getString('owner_userid');
+      // Retrieve user ID from shared preferences
+      final prefs = await SharedPreferences.getInstance();
+      final String? userId = prefs.getString('owner_userid');
 
-    if (userId == null || userId.isEmpty) {
-      debugPrint("User ID is null or empty");
-      return left(const FormFailures.serviceUnavailable());
+      if (userId == null || userId.isEmpty) {
+        debugPrint("User ID is null or empty");
+        return left(const FormFailures.serviceUnavailable());
+      }
+
+      // Initialize Firestore
+      final firebaseDb = await fireStore;
+
+      // Upload images and get the URLs
+      final imageListResult =
+          await uploadHostelImages(hostelImages: hostelImages);
+      List<String> imageUrls = [];
+
+      imageListResult.fold(
+        (failure) {
+          debugPrint("Image upload failed: $failure");
+          throw FormFailures
+              .serverError(); // You can define a custom failure if needed
+        },
+        (urls) {
+          imageUrls = urls;
+        },
+      );
+
+      if (imageUrls.isEmpty) {
+        debugPrint("No images uploaded successfully");
+        return left(const FormFailures.serverError());
+      }
+
+      // Prepare hostel data
+      final hostelData = {
+        'hostel_name': hostelName,
+        'hostelId': Uuid().v1(),
+        'owner_name': ownerName,
+        'phone_number': phoneNumber,
+        'description': description,
+        'location': {
+          'latitude': location.latitude,
+          'longitude': location.longitude,
+        },
+        'dist_from_college': distFromCollege,
+        'isMess_available': isMessAvailable,
+        'rent': rent,
+        'rooms': rooms,
+        'vacancy': vacancy,
+        'imageList': imageUrls,
+      };
+
+      // Save hostel data to Firestore
+      final DocumentReference doc = await firebaseDb
+          .collection('hostels')
+          .doc(userId)
+          .collection('my_hostels')
+          .add(hostelData);
+
+      await firebaseDb.collection('all_hostelList').add(hostelData);
+
+      debugPrint('Document added with ID: ${doc.id}');
+      return right(unit);
+    } on FirebaseException catch (e) {
+      // Firestore-specific errors
+      debugPrint("FirebaseException: ${e.message}");
+      return left(FormFailures.serverError());
+    } catch (e) {
+      // General error
+      debugPrint("An error occurred: $e");
+      return left(FormFailures.serviceUnavailable());
     }
-
-    // Initialize Firestore
-    final firebaseDb = await fireStore;
-
-    // Upload images and get the URLs
-    final imageListResult = await uploadHostelImages(hostelImages: hostelImages);
-    List<String> imageUrls = [];
-
-    imageListResult.fold(
-      (failure) {
-        debugPrint("Image upload failed: $failure");
-        throw FormFailures.serverError(); // You can define a custom failure if needed
-      },
-      (urls) {
-        imageUrls = urls;
-      },
-    );
-
-    if (imageUrls.isEmpty) {
-      debugPrint("No images uploaded successfully");
-      return left(const FormFailures.serverError());
-    }
-
-    // Prepare hostel data
-    final hostelData = {
-      'hostel_name': hostelName,
-      'hostelId': Uuid().v1(),
-      'owner_name': ownerName,
-      'phone_number': phoneNumber,
-      'description': description,
-      'location': {
-        'latitude': location.latitude,
-        'longitude': location.longitude,
-      },
-      'dist_from_college': distFromCollege,
-      'isMess_available': isMessAvailable,
-      'rent': rent,
-      'rooms': rooms,
-      'vacancy': vacancy,
-      'imageList': imageUrls,
-    };
-
-    // Save hostel data to Firestore
-    final DocumentReference doc = await firebaseDb
-        .collection('hostels')
-        .doc(userId)
-        .collection('my_hostels')
-        .add(hostelData);
-
-    await firebaseDb.collection('all_hostelList').add(hostelData);
-
-    debugPrint('Document added with ID: ${doc.id}');
-    return right(unit);
-  } on FirebaseException catch (e) {
-    // Firestore-specific errors
-    debugPrint("FirebaseException: ${e.message}");
-    return left(FormFailures.serverError());
-  } catch (e) {
-    // General error
-    debugPrint("An error occurred: $e");
-    return left(FormFailures.serviceUnavailable());
   }
-}
-
 
   @override
   Future<Either<FormFailures, List<HostelResponseModel>>>
       getAllHostelList() async {
     try {
-      // Reference to the `all_hostelList` collection
       final CollectionReference hostelCollection =
           FirebaseFirestore.instance.collection('all_hostelList');
 
-      // Fetch all documents from the `all_hostelList` collection
       QuerySnapshot querySnapshot = await hostelCollection.get();
 
-      // Check if any documents exist
       if (querySnapshot.docs.isEmpty) {
         return left(const FormFailures.noDataFound());
       }
 
-      // Convert each document into a HostelResponseModel
       List<HostelResponseModel> hostels = querySnapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         return HostelResponseModel.fromJson(data);
       }).toList();
 
-      print(hostels);
-      // Return the list of hostels
+      debugPrint(hostels.toString());
+
       return right(hostels);
     } catch (e) {
-      // Log and return a server failure in case of exceptions
-      print("Error fetching all hostel list: $e");
+      debugPrint("Error fetching all hostel list: $e");
       return left(const FormFailures.serverError());
     }
   }
@@ -188,7 +182,7 @@ Future<Either<FormFailures, Unit>> saveDataToDb({
   Future<Either<FormFailures, List<HostelResponseModel>>> getOwnerHostelList(
       {required String userId}) async {
     try {
-      print("api requesting uid $userId");
+      debugPrint("api requesting uid $userId");
       // Reference to the 'myhostel' subcollection for the specific user
       final CollectionReference<Map<String, dynamic>> hostelCollection =
           FirebaseFirestore.instance
@@ -207,17 +201,9 @@ Future<Either<FormFailures, Unit>> saveDataToDb({
       }).toList();
 
       debugPrint("i got hostels${hostels.toString()}");
-
-      // debugPrint(hostelCollection.toString());
-
-      // Check if any documents exist
       if (querySnapshot.docs.isEmpty) {
         return left(const FormFailures.noDataFound());
       }
-
-      // Convert each document into a HostelResponseModel
-
-      // Return the list of hostels
       return right(hostels);
     } catch (e) {
       // Log and return a server failure in case of exceptions
@@ -293,53 +279,52 @@ Future<Either<FormFailures, Unit>> saveDataToDb({
       return left(FormFailures.serverError());
     }
   }
-@override
-Future<Either<FormFailures, List<String>>> uploadHostelImages({
-  required List<XFile> hostelImages,
-}) async {
-  try {
-    final supabase = SupabaseClient(
-      'https://mksxoiizgunbatwgjgru.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rc3hvaWl6Z3VuYmF0d2dqZ3J1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY3NDUwODMsImV4cCI6MjA1MjMyMTA4M30.flRm8k5nPQOoi1F63dZaL-BLvZXMLoP14cEpPur0mzA',
-    );
 
-    List<String> imageUrls = [];
+  @override
+  Future<Either<FormFailures, List<String>>> uploadHostelImages({
+    required List<XFile> hostelImages,
+  }) async {
+    try {
+      final supabase = SupabaseClient(
+        'https://mksxoiizgunbatwgjgru.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rc3hvaWl6Z3VuYmF0d2dqZ3J1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY3NDUwODMsImV4cCI6MjA1MjMyMTA4M30.flRm8k5nPQOoi1F63dZaL-BLvZXMLoP14cEpPur0mzA',
+      );
 
-    // Upload each file and store the public URL
-    for (int i = 0; i < hostelImages.length; i++) {
-      final file = File(hostelImages[i].path);
-      final fileName = 'images/${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+      List<String> imageUrls = [];
 
-      try {
-        // Upload the file
-        await supabase.storage.from('hostel_images').upload(
-              fileName,
-              file,
-              fileOptions: const FileOptions(upsert: true),
-            );
+      // Upload each file and store the public URL
+      for (int i = 0; i < hostelImages.length; i++) {
+        final file = File(hostelImages[i].path);
+        final fileName =
+            'images/${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
 
-        // Get the public URL of the uploaded file
-        final publicUrl = supabase.storage.from('hostel_images').getPublicUrl(fileName);
-        if (publicUrl.isNotEmpty) {
-          imageUrls.add(publicUrl);
-        } else {
-          debugPrint("Failed to get public URL for $fileName");
+        try {
+          // Upload the file
+          await supabase.storage.from('hostel_images').upload(
+                fileName,
+                file,
+                fileOptions: const FileOptions(upsert: true),
+              );
+
+          // Get the public URL of the uploaded file
+          final publicUrl =
+              supabase.storage.from('hostel_images').getPublicUrl(fileName);
+          if (publicUrl.isNotEmpty) {
+            imageUrls.add(publicUrl);
+          } else {
+            debugPrint("Failed to get public URL for $fileName");
+            return left(FormFailures.serverError());
+          }
+        } catch (e) {
+          debugPrint("Upload failed for $fileName: ${e.toString()}");
           return left(FormFailures.serverError());
         }
-      } catch (e) {
-        debugPrint("Upload failed for $fileName: ${e.toString()}");
-        return left(FormFailures.serverError());
       }
+
+      return right(imageUrls);
+    } catch (e) {
+      debugPrint("Image uploading exception: ${e.toString()}");
+      return left(FormFailures.serverError());
     }
-
-    return right(imageUrls);
-  } catch (e) {
-    debugPrint("Image uploading exception: ${e.toString()}");
-    return left(FormFailures.serverError());
   }
-}
-
-
-
-
 }

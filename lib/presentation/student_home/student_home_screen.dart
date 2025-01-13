@@ -269,7 +269,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                               phNumber: hostel.phoneNumber,
                               rent: hostel.rent,
                                hostelId: hostel.hostelId,
-                               userId: userId.toString(),
+                               userId: userId.toString(), hostelImage: hostel.hostelImages,
                             )));
                   },
                   child: Card(
@@ -285,7 +285,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                           borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(12)),
                           child: Image.network(
-                            "https://thumbs.dreamstime.com/b/beds-hostel-affordable-housing-36997317.jpg",
+                            hostel.hostelImages[0],
                             height: 150,
                             fit: BoxFit.cover,
                           ),
