@@ -21,6 +21,7 @@ class HostelResponseModel {
   String rooms;
   String vacancy;
   List<String> hostelImages; // List of image URLs
+  String hostelOwnerUserId;
 
   HostelResponseModel({
     required this.description,
@@ -35,6 +36,7 @@ class HostelResponseModel {
     required this.rooms,
     required this.vacancy,
     required this.hostelImages,
+    required this.hostelOwnerUserId,
   });
 
   factory HostelResponseModel.fromJson(Map<String, dynamic> json) => HostelResponseModel(
@@ -50,6 +52,7 @@ class HostelResponseModel {
         rooms: json["rooms"],
         vacancy: json["vacancy"],
         hostelImages: List<String>.from(json["imageList"].map((x) => x)),
+        hostelOwnerUserId: json['hostelOwnerUserId']
       );
 
   Map<String, dynamic> toJson() => {
@@ -65,6 +68,7 @@ class HostelResponseModel {
         "rooms": rooms,
         "vacancy": vacancy,
         "imageList": List<dynamic>.from(hostelImages.map((x) => x)),
+        "hostelOwnerUserId" : hostelOwnerUserId
       };
 }
 

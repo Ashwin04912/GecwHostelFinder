@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:gecw_lakx/presentation/chat/chat_page.dart';
 import 'package:gecw_lakx/presentation/hostel_details/all_reviews_screen.dart';
 
 class HostelDetailsOwnerAppScreen extends StatelessWidget {
@@ -23,6 +24,7 @@ class HostelDetailsOwnerAppScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
             onPressed: () {
+              // Navigator.push(context, MaterialPageRoute(builder: (context)=>));
               // Handle chat icon press
             },
           ),

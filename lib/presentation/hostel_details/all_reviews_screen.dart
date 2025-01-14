@@ -51,42 +51,70 @@ class _ScreenAllReviewsOfHostelScreenState
             });
           },
           builder: (context, state) {
-            return reviews.isEmpty
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.tealAccent,
+            if (reviews.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.comment,
+                      size: 80,
+                      color: Colors.white70,
                     ),
-                  )
-                : Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "User Reviews",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Expanded(
-                          child: ListView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: reviews.length,
-                            itemBuilder: (context, index) {
-                              final review = reviews[index];
-                              return ReviewList(
-                                reviews: [review], // Pass a single review
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 16),
+                    const Text(
+                      "No Reviews Yet",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white70,
+                      ),
                     ),
-                  );
+                    const SizedBox(height: 8),
+                    const Text(
+                      "It seems like there are no reviews for this hostel yet.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0, vertical: 12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "User Reviews",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: ListView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: reviews.length,
+                      itemBuilder: (context, index) {
+                        final review = reviews[index];
+                        return ReviewList(
+                          reviews: [review], // Pass a single review
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
           },
         ),
       ),

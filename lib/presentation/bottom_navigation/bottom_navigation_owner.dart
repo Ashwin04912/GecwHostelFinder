@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gecw_lakx/presentation/chat/chat_room_screen.dart';
 import 'package:gecw_lakx/presentation/hostel_process/create_hostel_screen.dart';
 import 'package:gecw_lakx/presentation/owner_home/owner_home_screen.dart';
 
@@ -17,7 +18,10 @@ class BottomNavigationBarOwnerWidgetState extends State<BottomNavigationBarOwner
 
   final List<Widget> _pages = [
     OwnerHomeScreen(), // Replace with your home screen
-    OwnerProfileScreen()
+    
+    CreateHostelScreen(),
+    ChatRoomScreen(),
+    OwnerProfileScreen(),
   ];
 
   void _onNavBarItemTapped(int index) {
@@ -55,19 +59,19 @@ class BottomNavigationBarOwnerWidgetState extends State<BottomNavigationBarOwner
               ),
             ),
             // Floating Action Button
-            Center(
-              heightFactor: 0.6,
-              child: FloatingActionButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (ctx) => CreateHostelScreen()));
-                },
-                backgroundColor: Colors.pink,
-                child: const Icon(Icons.add, color: Colors.white),
-              ),
-            ),
+            // Center(
+            //   heightFactor: 0.6,
+            //   child: FloatingActionButton(
+            //     onPressed: () {
+            //       Navigator.push(
+            //           context,
+            //           MaterialPageRoute(
+            //               builder: (ctx) => CreateHostelScreen()));
+            //     },
+            //     backgroundColor: Colors.pink,
+            //     child: const Icon(Icons.add, color: Colors.white),
+            //   ),
+            // ),
             // Navigation items
             SizedBox(
               height: 56,
@@ -82,15 +86,35 @@ class BottomNavigationBarOwnerWidgetState extends State<BottomNavigationBarOwner
                     selected: _selectedIndex == 0,
                     onPressed: () => _onNavBarItemTapped(0),
                   ),
-                  const SizedBox(width: 56), // Space for FAB
-                  NavBarIcon(
-                    text: "Profile",
-                    icon: Icons.person,
+               
+                  
+                   NavBarIcon(
+                    text: "Add Hostel",
+                    icon: Icons.add,
                     defaultColor: secondaryColor,
                     selectedColor: primaryColor,
                     selected: _selectedIndex == 1,
                     onPressed: () => _onNavBarItemTapped(1),
                   ),
+                  
+                   NavBarIcon(
+                    text: "chat",
+                    icon: Icons.chat,
+                    defaultColor: secondaryColor,
+                    selectedColor: primaryColor,
+                    selected: _selectedIndex == 2,
+                    onPressed: () => _onNavBarItemTapped(2),
+                  ),
+                  
+                  NavBarIcon(
+                    text: "Profile",
+                    icon: Icons.person,
+                    defaultColor: secondaryColor,
+                    selectedColor: primaryColor,
+                    selected: _selectedIndex == 3,
+                    onPressed: () => _onNavBarItemTapped(3),
+                  ),
+                 
                 ],
               ),
             ),

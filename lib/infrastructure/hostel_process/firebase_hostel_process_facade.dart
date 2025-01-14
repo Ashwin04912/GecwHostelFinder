@@ -75,6 +75,8 @@ class FirebaseHostelProcessFacade extends IHostelProcessFacade {
     required String description,
   }) async {
     try {
+
+      
       print("In API call: $distFromCollege and $isMessAvailable");
 
       // Retrieve user ID from shared preferences
@@ -112,6 +114,7 @@ class FirebaseHostelProcessFacade extends IHostelProcessFacade {
 
       // Prepare hostel data
       final hostelData = {
+        'hostelOwnerUserId':userId,
         'hostel_name': hostelName,
         'hostelId': Uuid().v1(),
         'owner_name': ownerName,
@@ -130,7 +133,7 @@ class FirebaseHostelProcessFacade extends IHostelProcessFacade {
       };
 
       // Save hostel data to Firestore
-      final DocumentReference doc = await firebaseDb
+    final DocumentReference doc = await firebaseDb
           .collection('hostels')
           .doc(userId)
           .collection('my_hostels')
@@ -202,6 +205,7 @@ class FirebaseHostelProcessFacade extends IHostelProcessFacade {
 
       debugPrint("i got hostels${hostels.toString()}");
       if (querySnapshot.docs.isEmpty) {
+        print("no data found");
         return left(const FormFailures.noDataFound());
       }
       return right(hostels);

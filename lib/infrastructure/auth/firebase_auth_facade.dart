@@ -2,8 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 
 import '../../domain/auth/auth_failures.dart';
 import '../../domain/auth/i_auth_facade.dart';
@@ -41,7 +43,8 @@ class FirebaseAuthFacade implements IAuthFacade {
       await postUserRoleDetailsToDb(
         userId: user.uid,
         email: emailAddressStr,
-        role: role, // Replace with dynamic role if needed
+        role: role,
+        dispName: user.displayName ?? "No name",
       );
 
       return right(unit);
@@ -76,18 +79,26 @@ class FirebaseAuthFacade implements IAuthFacade {
 
       // Get current user
       User? user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
+
+      if (user == null) {
+        debugPrint("No current user found");
+        return left(AuthFailures.invalidEmailAndPasswordCombinationFailure());
+      } else {
         debugPrint(user.uid);
         // Store user ID in SharedPreferences
         prefs.setString('owner_userid', user.uid);
 
         // Fetch user data from Firestore
         DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-            .collection('users')
+            .collection('user_details')
             .doc(user.uid)
             .get();
 
         if (documentSnapshot.exists) {
+          FirebaseChatCore.instance.createUserInFirestore(types.User(
+            id: user.uid,
+            firstName: emailAddressStr
+          ));
           // Check user role
           final role = documentSnapshot.get('role');
           prefs.setString('role', role);
@@ -103,10 +114,6 @@ class FirebaseAuthFacade implements IAuthFacade {
           debugPrint("User document not found");
           return left(const AuthFailures.serverError());
         }
-      } else {
-        // No user is currently signed in
-        debugPrint("No current user found");
-        return left(const AuthFailures.serverError());
       }
     } on FirebaseAuthException catch (e) {
       // Handling FirebaseAuth specific errors
@@ -120,7 +127,8 @@ class FirebaseAuthFacade implements IAuthFacade {
       } else if (e.code == 'expired-credential' ||
           e.code == 'invalid-credential') {
         debugPrint("Expired credential");
-        return left(const AuthFailures.userNotFound());
+        return left(
+            const AuthFailures.invalidEmailAndPasswordCombinationFailure());
       } else {
         debugPrint("FirebaseAuthException: ${e.message}");
         return left(const AuthFailures.serverError());
@@ -137,16 +145,19 @@ class FirebaseAuthFacade implements IAuthFacade {
     required String userId,
     required String email,
     required String role,
+    required String dispName,
   }) async {
     try {
       // Reference to the Firestore collection
-      final userCollection = FirebaseFirestore.instance.collection('users');
+      final userCollection =
+          FirebaseFirestore.instance.collection('user_details');
 
       // Add or update the user's role and email in the Firestore document
       await userCollection.doc(userId).set({
         'userId': userId,
         'email': email,
         'role': role,
+        'displayName': dispName
       });
 
       debugPrint('User role details successfully saved to the database.');

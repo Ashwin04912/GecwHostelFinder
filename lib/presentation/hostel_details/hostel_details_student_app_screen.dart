@@ -1,15 +1,20 @@
 import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:gecw_lakx/application/hostel_process/common_hostel_process/common_hostel_process_bloc.dart';
+import 'package:gecw_lakx/presentation/chat/chat_page.dart';
 import 'package:gecw_lakx/presentation/hostel_details/widgets/build_detail_widget.dart';
 import 'package:gecw_lakx/presentation/hostel_details/widgets/build_review_widget.dart';
 
 @immutable
 class HostelDetailsStudentAppScreen extends StatefulWidget {
   final String hostelName;
+  final String hostelOwnerUserId;
   final String ownerName;
   final String phNumber;
   final String rent;
@@ -28,6 +33,7 @@ class HostelDetailsStudentAppScreen extends StatefulWidget {
     required this.hostelId,
     required this.userId,
     required this.hostelImage,
+    required this.hostelOwnerUserId,
   });
 
   @override
@@ -197,6 +203,7 @@ class HostelDetailsStudentAppScreenState
             icon: const Icon(Icons.chat),
             onPressed: () {
               // Chat button functionality
+              _handlePressed(types.User(id: widget.hostelOwnerUserId), context);
             },
             color: Colors.white,
           ),
@@ -306,7 +313,9 @@ class HostelDetailsStudentAppScreenState
           ),
           const SizedBox(height: 10),
           ...rooms.map((room) => _buildRoomCard(room)),
-          const SizedBox(height: 15,),
+          const SizedBox(
+            height: 15,
+          ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueGrey,
@@ -417,5 +426,11 @@ class HostelDetailsStudentAppScreenState
         ),
       ),
     );
+  }
+
+  void _handlePressed(types.User otherUser, BuildContext context) async {
+    final room = await FirebaseChatCore.instance.createRoom(otherUser);
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (ctx) => ChatPage(room: room,)));
   }
 }

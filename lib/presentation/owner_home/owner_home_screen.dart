@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gecw_lakx/application/hostel_process/owner_home/owner_home_bloc.dart';
 import 'package:gecw_lakx/domain/hostel_process/hostel_resp_model.dart';
 import 'package:gecw_lakx/presentation/hostel_details/hostel_details_owner_app_screen.dart';
+import 'package:gecw_lakx/presentation/hostel_process/create_hostel_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OwnerHomeScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
   String? ownerUserId;
+  bool? noHostelDataPresent;
 
   @override
   void initState() {
@@ -48,6 +50,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFF1A1A2E),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
         elevation: 0,
@@ -111,13 +114,23 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
         listener: (context, state) {
           state.hostelGetFailureOrSuccess.fold(() {}, (either) {
             either.fold((failure) {
-              final message = failure.maybeWhen(
-                serviceUnavailable: () =>
-                    "Service is currently unavailable. Try again later.",
-                orElse: () => "An unexpected error occurred.",
+              failure.maybeWhen(
+                noDataFound: () {
+                  setState(() {
+                    noHostelDataPresent = true;
+                  });
+                },
+                orElse: () {},
               );
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(SnackBar(content: Text(message)));
+              String? message = failure.maybeWhen(
+                  serviceUnavailable: () =>
+                      "Service is currently unavailable. Try again later.",
+                  orElse: () => "An unexpected error occurred.",
+                  noDataFound: () => null);
+              if (message != null) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(message)));
+              }
             }, (hostels) {
               setState(() {
                 hostelResponseModel = hostels;
@@ -126,9 +139,62 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
           });
         },
         builder: (context, state) {
-          if (hostelResponseModel == null) {
+          if (hostelResponseModel == null && noHostelDataPresent != true) {
             return const Center(
               child: CircularProgressIndicator(color: Colors.deepPurple),
+            );
+          }
+
+          if (noHostelDataPresent == true) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.hotel,
+                    size: 80,
+                    color: Colors.deepPurpleAccent,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "No Hostels Found",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "It seems like you haven't added any hostels yet.\nTap the button below to get started.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => CreateHostelScreen()));
+                    },
+                    icon: const Icon(Icons.add, color: Colors.white),
+                    label: const Text(
+                      "Add Hostel",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             );
           }
 
@@ -188,9 +254,6 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                               top: Radius.circular(12)),
                           child: CachedNetworkImage(
                             height: 150,
-                            cacheManager:
-                                CachedNetworkImageProvider.defaultCacheManager,
-                            key: UniqueKey(),
                             imageUrl: hostel.hostelImages[0],
                             width: MediaQuery.of(context).size.width - 40,
                             fit: BoxFit.cover,

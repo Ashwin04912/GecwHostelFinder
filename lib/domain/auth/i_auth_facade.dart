@@ -18,5 +18,6 @@ abstract class IAuthFacade {
     required String userId,
     required String email,
     required String role,
+    required String dispName
   });
 }
