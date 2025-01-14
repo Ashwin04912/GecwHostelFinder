@@ -75,8 +75,6 @@ class FirebaseHostelProcessFacade extends IHostelProcessFacade {
     required String description,
   }) async {
     try {
-
-      
       print("In API call: $distFromCollege and $isMessAvailable");
 
       // Retrieve user ID from shared preferences
@@ -89,18 +87,17 @@ class FirebaseHostelProcessFacade extends IHostelProcessFacade {
       }
 
       // Initialize Firestore
-      final firebaseDb = await fireStore;
+      final firebaseDb = FirebaseFirestore.instance;
 
       // Upload images and get the URLs
       final imageListResult =
           await uploadHostelImages(hostelImages: hostelImages);
-      List<String> imageUrls = [];
+      late List<String> imageUrls;
 
       imageListResult.fold(
         (failure) {
           debugPrint("Image upload failed: $failure");
-          throw FormFailures
-              .serverError(); // You can define a custom failure if needed
+          return left(const FormFailures.serverError());
         },
         (urls) {
           imageUrls = urls;
@@ -112,11 +109,13 @@ class FirebaseHostelProcessFacade extends IHostelProcessFacade {
         return left(const FormFailures.serverError());
       }
 
+      final String hostelId = Uuid().v1();
+
       // Prepare hostel data
       final hostelData = {
-        'hostelOwnerUserId':userId,
+        'hostelOwnerUserId': userId,
         'hostel_name': hostelName,
-        'hostelId': Uuid().v1(),
+        'hostelId': hostelId,
         'owner_name': ownerName,
         'phone_number': phoneNumber,
         'description': description,
@@ -133,53 +132,70 @@ class FirebaseHostelProcessFacade extends IHostelProcessFacade {
       };
 
       // Save hostel data to Firestore
-    final DocumentReference doc = await firebaseDb
-          .collection('hostels')
-          .doc(userId)
+      await firebaseDb
           .collection('my_hostels')
-          .add(hostelData);
+          .doc(userId)
+          .collection('hostels')
+          .doc(hostelId)
+          .set(hostelData);
 
-      await firebaseDb.collection('all_hostelList').add(hostelData);
+      await firebaseDb
+          .collection('all_hostel_list')
+          .doc(hostelId)
+          .set(hostelData);
 
-      debugPrint('Document added with ID: ${doc.id}');
+      debugPrint('Document added with ID: $hostelId');
       return right(unit);
     } on FirebaseException catch (e) {
-      // Firestore-specific errors
-      debugPrint("FirebaseException: ${e.message}");
-      return left(FormFailures.serverError());
+      debugPrint("FirebaseException [${e.code}]: ${e.message}");
+      return left(const FormFailures.serverError());
     } catch (e) {
-      // General error
-      debugPrint("An error occurred: $e");
-      return left(FormFailures.serviceUnavailable());
+      debugPrint("An unexpected error occurred: $e");
+      return left(const FormFailures.serviceUnavailable());
     }
   }
 
   @override
-  Future<Either<FormFailures, List<HostelResponseModel>>>
-      getAllHostelList() async {
-    try {
-      final CollectionReference hostelCollection =
-          FirebaseFirestore.instance.collection('all_hostelList');
+Future<Either<FormFailures, List<HostelResponseModel>>>
+    getAllHostelList() async {
+  try {
+    // Reference the collection
+    final CollectionReference hostelCollection =
+        FirebaseFirestore.instance.collection('all_hostel_list');
 
-      QuerySnapshot querySnapshot = await hostelCollection.get();
+    // Query the collection
+    QuerySnapshot querySnapshot = await hostelCollection.get();
 
-      if (querySnapshot.docs.isEmpty) {
-        return left(const FormFailures.noDataFound());
-      }
-
-      List<HostelResponseModel> hostels = querySnapshot.docs.map((doc) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        return HostelResponseModel.fromJson(data);
-      }).toList();
-
-      debugPrint(hostels.toString());
-
-      return right(hostels);
-    } catch (e) {
-      debugPrint("Error fetching all hostel list: $e");
-      return left(const FormFailures.serverError());
+    // Check if the collection is empty
+    if (querySnapshot.docs.isEmpty) {
+      debugPrint("No data found in all_hostel_list collection");
+      return left(const FormFailures.noDataFound());
     }
+
+    // Map the querySnapshot to the list of HostelResponseModel
+    List<HostelResponseModel> hostels = querySnapshot.docs.map((doc) {
+      // Safely parse document data
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      return HostelResponseModel.fromJson(data);
+    }).toList();
+
+    debugPrint("Fetched hostels: $hostels");
+
+    return right(hostels);
+  } catch (e) {
+    // Handle any exceptions
+    debugPrint("Error fetching all hostel list: $e");
+
+    // If the error might be related to a missing collection
+    if (e.toString().contains('Null is not a subtype of type')) {
+      debugPrint("Likely cause: Collection does not exist or has no data.");
+      return left(const FormFailures.noDataFound());
+    }
+
+    return left(const FormFailures.serverError());
   }
+}
+
 
   @override
   Future<Either<FormFailures, List<HostelResponseModel>>> getOwnerHostelList(
@@ -189,13 +205,9 @@ class FirebaseHostelProcessFacade extends IHostelProcessFacade {
       // Reference to the 'myhostel' subcollection for the specific user
       final CollectionReference<Map<String, dynamic>> hostelCollection =
           FirebaseFirestore.instance
-              .collection('hostels')
-              .doc(userId)
               .collection('my_hostels')
-              .withConverter<Map<String, dynamic>>(
-                fromFirestore: (snapshot, _) => snapshot.data()!,
-                toFirestore: (data, _) => data,
-              );
+              .doc(userId)
+              .collection('hostels');
 
       final QuerySnapshot<Map<String, dynamic>> querySnapshot =
           await hostelCollection.get();
