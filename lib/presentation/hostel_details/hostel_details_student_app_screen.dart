@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -10,6 +9,7 @@ import 'package:gecw_lakx/application/hostel_process/common_hostel_process/commo
 import 'package:gecw_lakx/presentation/chat/chat_page.dart';
 import 'package:gecw_lakx/presentation/hostel_details/widgets/build_detail_widget.dart';
 import 'package:gecw_lakx/presentation/hostel_details/widgets/build_review_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 @immutable
 class HostelDetailsStudentAppScreen extends StatefulWidget {
@@ -199,13 +199,37 @@ class HostelDetailsStudentAppScreenState
           style: const TextStyle(color: Colors.white),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.chat),
-            onPressed: () {
-              // Chat button functionality
-              _handlePressed(types.User(id: widget.hostelOwnerUserId), context);
-            },
-            color: Colors.white,
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.call),
+                onPressed: () async {
+                  final phoneNumber =
+                      widget.phNumber; // Use your desired phone number
+                  final url = 'tel:$phoneNumber';
+                  if (await canLaunch(url)) {
+                    await launch(url);
+                  } else {
+                    // Handle the error if the URL can't be launched
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Could not launch the phone dialer.'),
+                      ),
+                    );
+                  }
+                },
+                color: Colors.white,
+              ),
+              IconButton(
+                icon: const Icon(Icons.chat),
+                onPressed: () {
+                  // Chat button functionality
+                  _handlePressed(
+                      types.User(id: widget.hostelOwnerUserId), context);
+                },
+                color: Colors.white,
+              ),
+            ],
           ),
         ],
       ),
@@ -299,7 +323,6 @@ class HostelDetailsStudentAppScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           buildDetail("Owner Name", widget.ownerName),
-          buildDetail("Phone Number", widget.phNumber),
           buildDetail("Rent", "₹${widget.rent}/month"),
           buildDetail("Mess", widget.mess),
           const SizedBox(height: 20),
@@ -431,6 +454,6 @@ class HostelDetailsStudentAppScreenState
   void _handlePressed(types.User otherUser, BuildContext context) async {
     final room = await FirebaseChatCore.instance.createRoom(otherUser);
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (ctx) => ChatPage(room: room,)));
+        .push(MaterialPageRoute(builder: (ctx) => ChatPage(room: room)));
   }
 }

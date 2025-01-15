@@ -344,7 +344,19 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async => true,
+       onWillPop: () async {
+      if (_isSearching || hostelResponseModel != allHostels) {
+        // Reset to the full list and exit search mode if necessary
+        setState(() {
+          _isSearching = false;
+          _searchController.clear();
+          _searchQuery = "";
+          hostelResponseModel = allHostels;
+        });
+        return false; // Prevent default back action
+      }
+      return true; // Allow default back action (close the app)
+    },
       child: Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
